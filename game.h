@@ -1,3 +1,3 @@
 #pragma once
 
-void game(int x, int y, char grid[y][x]);
+void game(int y, int x, char grid[y][x]);
