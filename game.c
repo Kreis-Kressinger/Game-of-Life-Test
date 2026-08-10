@@ -64,11 +64,20 @@
 // return (non); // like a frenchman denying...
 // }
 
+//static int lower_BC_and_return(int index_,int upper_bound){
+//	int retval =  
+//	return retval;
+//}
+//static int upper_BC_and_return(int index_,int upper_bound){
+////	int retval = index_%upper_bound;
+//	int retval = 0;
+//	return retval;
+//}
+//
 static int number_of_neighbors(int y, int x, char grid[GRID_Y][GRID_X]) // static: nur innerhalb dieser Datei verfügbar
 									// ansonsten müsste man die Fct. in game.h deklarieren..
 {
 	int non = 0;
-
 	for (int y_ = y - 1; y_ <= y + 1; y_++) {
 		for (int x_ = x - 1; x_ <= x + 1; x_++) {
 
@@ -76,13 +85,40 @@ static int number_of_neighbors(int y, int x, char grid[GRID_Y][GRID_X]) // stati
 			if (y_ == y && x_ == x)
 				continue;
 
-			// outside grid
+#if CYCLIC_BC
+
+			/*
+			 * Cyclic boundary conditions:
+			 *
+			 *   y_ = -1      -> GRID_Y - 1
+			 *   y_ = GRID_Y  -> 0
+			 *
+			 *   x_ = -1      -> GRID_X - 1
+			 *   x_ = GRID_X  -> 0
+			 *
+			 * Adding GRID_Y / GRID_X before applying modulo
+			 * avoids a negative result for an index of -1.
+			 */
+			int y_check = (y_ + GRID_Y) % GRID_Y;
+			int x_check = (x_ + GRID_X) % GRID_X;
+
+			if (grid[y_check][x_check] == 1)
+				non++;
+
+#else
+
+			/*
+			 * Non-cyclic boundary conditions:
+			 * Ignore neighbors outside the grid.
+			 */
 			if (y_ < 0 || y_ >= GRID_Y ||
 					x_ < 0 || x_ >= GRID_X)
 				continue;
 
 			if (grid[y_][x_] == 1)
 				non++;
+
+#endif
 		}
 	}
 
@@ -96,7 +132,7 @@ void game(char grid[][GRID_X])
 	printf("game started...\n");
 	int generation = 0;
 	while (1) {
-		printf("Generation: %d\n",generation);
+		printf("\n\nGeneration: %d\n",generation);
 		print_grid(grid);
 		sleep_ms(1000);
 		char ingrid[GRID_Y][GRID_X]={0}; // iteration grid :)
