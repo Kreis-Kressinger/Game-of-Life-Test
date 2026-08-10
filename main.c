@@ -1,19 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
 #include "game.h"
 #include "print_grid.h"
 
-
-#define GRID_X 30
-#define GRID_Y 30
-//#define RULESET {'T','T','C','G','T','T','T','T','T'}
-//no. of living neigbors
-//                0   1   2   3   4   5   6   7   8
-#define RULESET {'0','0','C','1','0','0','0','0','0'}
-// 0 = dead, 1 = alive, C = copy state from prev. generation
-
-int toggle_pixel(int y_assign, int x_assign, char grid[GRID_Y][GRID_X] ){
+static int toggle_pixel(int y_assign, int x_assign, char grid[GRID_Y][GRID_X] ){
 	// Validierung der Koordinaten
 	if (x_assign < 1 || x_assign > GRID_X ||
 			y_assign < 1 || y_assign > GRID_Y) {
@@ -28,51 +20,81 @@ int toggle_pixel(int y_assign, int x_assign, char grid[GRID_Y][GRID_X] ){
 }
 
 int main(void){
-
-	char ruleset[] = RULESET;
-
-	char grid[GRID_Y][GRID_X] = {0};	
+	char grid[GRID_Y][GRID_X] = {0};
 
 	printf("Set up initial generation.");
 
 	int creation_mode = 1;
 	int y_assign, x_assign;
 	char template[10];
-	while(creation_mode){
-		print_grid(GRID_Y, GRID_X, grid);
-		printf("\nEnter xy coordinate to toggle a cell. Format: \"Y X\" oder \"Y X TEMPLATE\". Enter nonsense to stop. ");
+	while (creation_mode) {
+		print_grid(grid);
 
-		int gelesene_werte = scanf("%d %d %9s", &y_assign, &x_assign, template);
+		printf("\nEnter xy coordinate to toggle a cell. "
+				"Format: \"Y X\" or \"Y X TEMPLATE\". "
+				"Enter nonsense to stop. ");
 
-		// Wenn nicht einmal 2 Zahlen eingegeben wurden (z.B. Buchstabe oder "nonsense")
+		// Read one complete line from stdin.
+		// This avoids scanf() waiting for a possible third argument
+		// on the next input line.
+		char line[100];
+
+		if (fgets(line, sizeof line, stdin) == NULL) {
+			break;  // EOF or input error
+		}
+
+		// Parse the line:
+		//   "Y X"          -> gelesene_werte == 2
+		//   "Y X TEMPLATE" -> gelesene_werte == 3
+		//
+		// %9s limits the template string to 9 characters
+		// and prevents writing beyond the template buffer.
+		int gelesene_werte =
+			sscanf(line, "%d %d %9s",
+					&y_assign, &x_assign, template);
+
+		// Fewer than two successfully read values means that
+		// no valid coordinate pair was entered.
 		if (gelesene_werte < 2) {
 			break;
 		}
 
-		// Wenn 3 Werte eingegeben wurden, wurde ein Template mitgegeben
+		// A third argument was entered, so interpret it
+		// as the name of a predefined template.
 		if (gelesene_werte == 3) {
 			printf("Template erkannt: %s\n", template);
-			if (strcmp(template,"block") == 0){ // <-- WTF ist das für eine unintuitive K*acke
-			        for (int y_index = y_assign; y_index < y_assign+2; y_index++)
-				{
-					for (int x_index = x_assign; x_index < x_assign+2; x_index++)
-					{
-						toggle_pixel(y_index,x_index,grid);
+
+			// Create a 2 x 2 still-life block.
+			if (strcmp(template, "block") == 0) {
+
+				// Iterate over the two rows of the block.
+				for (int y_index = y_assign;
+						y_index < y_assign + 2;
+						y_index++) {
+
+					// Iterate over the two columns of the block.
+					for (int x_index = x_assign;
+							x_index < x_assign + 2;
+							x_index++) {
+
+						// Toggle each of the four cells.
+						toggle_pixel(y_index, x_index, grid);
 					}
 				}
-				printf("Block created!");
+
+				printf("Block created!\n");
 			}
 		}
-		else{
-			if (toggle_pixel(y_assign,x_assign,grid))
-			{
-				continue; // Fehler
+		else {
+			// No template was given:
+			// toggle only the single cell at (y_assign, x_assign).
+			if (toggle_pixel(y_assign, x_assign, grid)) {
+				continue;
 			}
 		}
 	}
-//	Please look at game.c, started implementation...
-/*	
 	printf("starting game...");
-	game(GRID_Y,GRID_X,grid);
-*/
+	//game(GRID_Y,GRID_X,grid);
+	game(grid); // grid hat keine dynamische Größe (Größe ist über Makros definiert und steht schon zur
+		    // Compilezeit fest -> GRID_Y,GRID_X brauchen nicht übergeben zu werden.
 }

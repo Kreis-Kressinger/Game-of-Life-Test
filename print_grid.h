@@ -1,6 +1,4 @@
-#include <stdio.h>
 #pragma once
-#include "print_grid.h"
+#include "game.h"
 
-
-void print_grid(int y, int x, char grid[y][x]);
+void print_grid(char grid[][GRID_X]);

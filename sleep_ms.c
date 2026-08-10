@@ -20,8 +20,9 @@ void sleep_ms(uint64_t milliseconds)
 
 #elif defined(__unix__) || defined(__APPLE__) || defined(__linux__)
 
-#include <errno.h>
+#define _POSIX_C_SOURCE 199309L
 #include <time.h>
+#include <errno.h>
 
 void sleep_ms(uint64_t milliseconds)
 {
