@@ -1,16 +1,4 @@
-#include <stdio.h>
 #pragma once
+#include "game.h"
 
-void print_grid(int y, int x, char grid[y][x]){
-	for(int i = 0; i < y; i++){
-		printf("\n");
-		for(int j = 0; j < y; j++){
-			if(grid[i][j] == 1){
-				printf("#");
-			}else{
-				printf(".");
-			}
-		}
-	}
-}
-
+void print_grid(char grid[][GRID_X]);
